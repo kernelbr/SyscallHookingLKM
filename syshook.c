@@ -12,7 +12,8 @@ static char *sys_call_table_addr = "0x0";
 module_param(sys_call_table_addr, charp, 0);
 MODULE_PARM_DESC(sys_call_table_addr, "The sys_call_table address in System.map");
 
-static long my_exit_group(unsigned int exit_code) {
+/* sys_exit_group hook */
+static long my_exit_group(int exit_code) {
 	printk(KERN_INFO "Hooked sys_exit_group (%u)\n", exit_code);
 
 	return orig_exit_group(exit_code);
@@ -71,7 +72,7 @@ static void __exit syshook_cleanup(void) {
 
 	if (orig_exit_group) {
 		unprotect_memory();
-		sys_call_table[__NR_exit_group] = (unsigned long) orig_exit_group;
+		sys_call_table[__NR_exit_group] = (unsigned long)orig_exit_group;
 		protect_memory();
 	}
 }
