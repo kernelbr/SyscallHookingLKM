@@ -5,31 +5,35 @@
 #include <linux/syscalls.h>
 
 static pte_t *pte;
-unsigned long *sys_call_table;
-long (*orig_exit_group)(int);
+static unsigned long *sys_call_table;
+static long (*orig_exit_group)(int);
 
 static char *sys_call_table_addr = "0x0";
 module_param(sys_call_table_addr, charp, 0);
 MODULE_PARM_DESC(sys_call_table_addr, "The sys_call_table address in System.map");
 
 /* sys_exit_group hook */
-static long my_exit_group(int exit_code) {
+static long my_exit_group(int exit_code)
+{
 	printk(KERN_INFO "Hooked sys_exit_group (%u)\n", exit_code);
 
 	return orig_exit_group(exit_code);
 }
 
-static inline void protect_memory(void) {
+static inline void protect_memory(void)
+{
 	/* Restore kernel memory page protection */
 	set_pte_atomic(pte, pte_clear_flags(*pte, _PAGE_RW));
 }
 
-static inline void unprotect_memory(void) {
+static inline void unprotect_memory(void)
+{
 	/* Unprotected kernel memory page containing for writing */
 	set_pte_atomic(pte, pte_mkwrite(*pte));
 }
 
-static int __init syshook_init(void) {
+static int __init syshook_init(void)
+{
 	unsigned long addr;
 	unsigned int level;
 
@@ -67,7 +71,8 @@ static int __init syshook_init(void) {
     return 0;
 }
 
-static void __exit syshook_cleanup(void) {
+static void __exit syshook_cleanup(void)
+{
 	printk(KERN_INFO "Cleaning up module.\n");
 
 	if (orig_exit_group) {
